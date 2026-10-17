@@ -1,0 +1,799 @@
+[
+  {
+    "id": "fabricated_api-1",
+    "category": "FABRICATED_API",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The auth module exports createSuperSession.",
+      "category": "API",
+      "requiredEvidence": [
+        {
+          "kind": "export",
+          "path": "src/auth.ts",
+          "name": "createSuperSession"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The complete local auth module has no such export; the collector can establish this narrow contradiction."
+  },
+  {
+    "id": "fabricated_api-2",
+    "category": "FABRICATED_API",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The auth module exports authenticateWithMagic.",
+      "category": "API",
+      "requiredEvidence": [
+        {
+          "kind": "export",
+          "path": "src/auth.ts",
+          "name": "authenticateWithMagic"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The complete local auth module has no such export; the collector can establish this narrow contradiction."
+  },
+  {
+    "id": "fabricated_api-3",
+    "category": "FABRICATED_API",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The auth module exports revokeEverywhere.",
+      "category": "API",
+      "requiredEvidence": [
+        {
+          "kind": "export",
+          "path": "src/auth.ts",
+          "name": "revokeEverywhere"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The complete local auth module has no such export; the collector can establish this narrow contradiction."
+  },
+  {
+    "id": "fabricated_api-4",
+    "category": "FABRICATED_API",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The auth module exports enableZeroTrust.",
+      "category": "API",
+      "requiredEvidence": [
+        {
+          "kind": "export",
+          "path": "src/auth.ts",
+          "name": "enableZeroTrust"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The complete local auth module has no such export; the collector can establish this narrow contradiction."
+  },
+  {
+    "id": "nonexistent_symbol-1",
+    "category": "NONEXISTENT_SYMBOL",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "sessionCache exists in auth module scope.",
+      "category": "SYMBOL",
+      "requiredEvidence": [
+        {
+          "kind": "symbol",
+          "path": "src/auth.ts",
+          "name": "sessionCache"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "No declaration or in-scope binding with this name exists in the fixture."
+  },
+  {
+    "id": "nonexistent_symbol-2",
+    "category": "NONEXISTENT_SYMBOL",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "refreshToken exists in auth module scope.",
+      "category": "SYMBOL",
+      "requiredEvidence": [
+        {
+          "kind": "symbol",
+          "path": "src/auth.ts",
+          "name": "refreshToken"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "No declaration or in-scope binding with this name exists in the fixture."
+  },
+  {
+    "id": "nonexistent_symbol-3",
+    "category": "NONEXISTENT_SYMBOL",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "oauthProvider exists in auth module scope.",
+      "category": "SYMBOL",
+      "requiredEvidence": [
+        {
+          "kind": "symbol",
+          "path": "src/auth.ts",
+          "name": "oauthProvider"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "No declaration or in-scope binding with this name exists in the fixture."
+  },
+  {
+    "id": "nonexistent_symbol-4",
+    "category": "NONEXISTENT_SYMBOL",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "signingKeyRing exists in auth module scope.",
+      "category": "SYMBOL",
+      "requiredEvidence": [
+        {
+          "kind": "symbol",
+          "path": "src/auth.ts",
+          "name": "signingKeyRing"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "No declaration or in-scope binding with this name exists in the fixture."
+  },
+  {
+    "id": "false_test_claim-1",
+    "category": "FALSE_TEST_CLAIM",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "All authentication tests pass.",
+      "category": "TEST",
+      "requiredEvidence": [
+        {
+          "kind": "tests",
+          "commandId": "auth"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "UNSUPPORTED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The fixture intentionally has no such tests or execution records. Missing execution is unsupported, never a fabricated failing-test observation."
+  },
+  {
+    "id": "false_test_claim-2",
+    "category": "FALSE_TEST_CLAIM",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The database integration tests passed.",
+      "category": "TEST",
+      "requiredEvidence": [
+        {
+          "kind": "tests",
+          "commandId": "integration"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "UNSUPPORTED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The fixture intentionally has no such tests or execution records. Missing execution is unsupported, never a fabricated failing-test observation."
+  },
+  {
+    "id": "false_test_claim-3",
+    "category": "FALSE_TEST_CLAIM",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The security regression suite is green.",
+      "category": "TEST",
+      "requiredEvidence": [
+        {
+          "kind": "tests",
+          "commandId": "security"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "UNSUPPORTED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The fixture intentionally has no such tests or execution records. Missing execution is unsupported, never a fabricated failing-test observation."
+  },
+  {
+    "id": "false_test_claim-4",
+    "category": "FALSE_TEST_CLAIM",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The browser login tests pass without skips.",
+      "category": "TEST",
+      "requiredEvidence": [
+        {
+          "kind": "tests",
+          "commandId": "browser"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "UNSUPPORTED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The fixture intentionally has no such tests or execution records. Missing execution is unsupported, never a fabricated failing-test observation."
+  },
+  {
+    "id": "unsupported_completion-1",
+    "category": "UNSUPPORTED_COMPLETION",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The requested SSO feature is fully implemented.",
+      "category": "COMPLETION",
+      "requiredEvidence": []
+    },
+    "expectedEvidenceStatus": "NOT_CHECKED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "UNDETERMINED",
+    "explanation": "Completion has no precise acceptance criteria or independent evidence; preserve the exact assertion and limited extraction quality."
+  },
+  {
+    "id": "unsupported_completion-2",
+    "category": "UNSUPPORTED_COMPLETION",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The service is production ready.",
+      "category": "COMPLETION",
+      "requiredEvidence": []
+    },
+    "expectedEvidenceStatus": "NOT_CHECKED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "UNDETERMINED",
+    "explanation": "Completion has no precise acceptance criteria or independent evidence; preserve the exact assertion and limited extraction quality."
+  },
+  {
+    "id": "unsupported_completion-3",
+    "category": "UNSUPPORTED_COMPLETION",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The migration is complete and safe to deploy.",
+      "category": "COMPLETION",
+      "requiredEvidence": []
+    },
+    "expectedEvidenceStatus": "NOT_CHECKED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "UNDETERMINED",
+    "explanation": "Completion has no precise acceptance criteria or independent evidence; preserve the exact assertion and limited extraction quality."
+  },
+  {
+    "id": "unsupported_completion-4",
+    "category": "UNSUPPORTED_COMPLETION",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "All requested edge cases are handled.",
+      "category": "COMPLETION",
+      "requiredEvidence": []
+    },
+    "expectedEvidenceStatus": "NOT_CHECKED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "UNDETERMINED",
+    "explanation": "Completion has no precise acceptance criteria or independent evidence; preserve the exact assertion and limited extraction quality."
+  },
+  {
+    "id": "dependency_mismatch-1",
+    "category": "DEPENDENCY_MISMATCH",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The package declares quirky-kit at 2.0.0.",
+      "category": "DEPENDENCY",
+      "requiredEvidence": [
+        {
+          "kind": "dependency",
+          "name": "quirky-kit",
+          "version": "2.0.0"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The declaration is absent or its exact version specifier differs. This does not establish registry availability."
+  },
+  {
+    "id": "dependency_mismatch-2",
+    "category": "DEPENDENCY_MISMATCH",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The package declares session-magic.",
+      "category": "DEPENDENCY",
+      "requiredEvidence": [
+        {
+          "kind": "dependency",
+          "name": "session-magic"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The declaration is absent or its exact version specifier differs. This does not establish registry availability."
+  },
+  {
+    "id": "dependency_mismatch-3",
+    "category": "DEPENDENCY_MISMATCH",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The package declares @cloud/auth.",
+      "category": "DEPENDENCY",
+      "requiredEvidence": [
+        {
+          "kind": "dependency",
+          "name": "@cloud/auth"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The declaration is absent or its exact version specifier differs. This does not establish registry availability."
+  },
+  {
+    "id": "dependency_mismatch-4",
+    "category": "DEPENDENCY_MISMATCH",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The package declares jsonwebtoken.",
+      "category": "DEPENDENCY",
+      "requiredEvidence": [
+        {
+          "kind": "dependency",
+          "name": "jsonwebtoken"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The declaration is absent or its exact version specifier differs. This does not establish registry availability."
+  },
+  {
+    "id": "incorrect_assumption-1",
+    "category": "INCORRECT_ASSUMPTION",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The migration file exists.",
+      "category": "ASSUMPTION",
+      "requiredEvidence": [
+        {
+          "kind": "file",
+          "path": "src/migrations/001.sql"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The referenced file is absent inside the complete local fixture."
+  },
+  {
+    "id": "incorrect_assumption-2",
+    "category": "INCORRECT_ASSUMPTION",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "An OAuth implementation file exists.",
+      "category": "ASSUMPTION",
+      "requiredEvidence": [
+        {
+          "kind": "file",
+          "path": "src/oauth.ts"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The referenced file is absent inside the complete local fixture."
+  },
+  {
+    "id": "incorrect_assumption-3",
+    "category": "INCORRECT_ASSUMPTION",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The policy source file exists.",
+      "category": "ASSUMPTION",
+      "requiredEvidence": [
+        {
+          "kind": "file",
+          "path": "src/policy.ts"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The referenced file is absent inside the complete local fixture."
+  },
+  {
+    "id": "incorrect_assumption-4",
+    "category": "INCORRECT_ASSUMPTION",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "A rate limit module file exists.",
+      "category": "ASSUMPTION",
+      "requiredEvidence": [
+        {
+          "kind": "file",
+          "path": "src/rate-limit.ts"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "CONTRADICTED",
+    "safeRouting": {
+      "allowedActions": [
+        "AGENT_REPAIR"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "HALLUCINATED",
+    "explanation": "The referenced file is absent inside the complete local fixture."
+  },
+  {
+    "id": "legitimate_unfamiliar_code-1",
+    "category": "LEGITIMATE_UNFAMILIAR_CODE",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The local quantum module exports materializeDeferredLease.",
+      "category": "CODE",
+      "requiredEvidence": [
+        {
+          "kind": "export",
+          "path": "vendor/quantum.ts",
+          "name": "materializeDeferredLease"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "VERIFIED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": false
+    },
+    "groundTruth": "CORRECT",
+    "explanation": "Unfamiliar spelling is irrelevant; the TypeScript compiler establishes this exact export."
+  },
+  {
+    "id": "legitimate_unfamiliar_code-2",
+    "category": "LEGITIMATE_UNFAMILIAR_CODE",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The local quantum module exports FluxAccumulator.",
+      "category": "CODE",
+      "requiredEvidence": [
+        {
+          "kind": "export",
+          "path": "vendor/quantum.ts",
+          "name": "FluxAccumulator"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "VERIFIED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": false
+    },
+    "groundTruth": "CORRECT",
+    "explanation": "Unfamiliar spelling is irrelevant; the TypeScript compiler establishes this exact export."
+  },
+  {
+    "id": "legitimate_unfamiliar_code-3",
+    "category": "LEGITIMATE_UNFAMILIAR_CODE",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The local quantum module exports BrandedNonce.",
+      "category": "CODE",
+      "requiredEvidence": [
+        {
+          "kind": "export",
+          "path": "vendor/quantum.ts",
+          "name": "BrandedNonce"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "VERIFIED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": false
+    },
+    "groundTruth": "CORRECT",
+    "explanation": "Unfamiliar spelling is irrelevant; the TypeScript compiler establishes this exact export."
+  },
+  {
+    "id": "legitimate_unfamiliar_code-4",
+    "category": "LEGITIMATE_UNFAMILIAR_CODE",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The local quantum module exports quiescentClock.",
+      "category": "CODE",
+      "requiredEvidence": [
+        {
+          "kind": "export",
+          "path": "vendor/quantum.ts",
+          "name": "quiescentClock"
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "VERIFIED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": false
+    },
+    "groundTruth": "CORRECT",
+    "explanation": "Unfamiliar spelling is irrelevant; the TypeScript compiler establishes this exact export."
+  },
+  {
+    "id": "insufficient_evidence-1",
+    "category": "INSUFFICIENT_EVIDENCE",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The API documentation says: createSession encrypts tokens at rest.",
+      "category": "UNKNOWN",
+      "requiredEvidence": [
+        {
+          "kind": "documentation",
+          "path": "docs/api.md",
+          "excerpt": "createSession encrypts tokens at rest."
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "UNSUPPORTED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "UNDETERMINED",
+    "explanation": "The excerpt is not present. Local documentation absence cannot establish the underlying proposition as false."
+  },
+  {
+    "id": "insufficient_evidence-2",
+    "category": "INSUFFICIENT_EVIDENCE",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The API documentation says: verifyToken performs network revocation checks.",
+      "category": "UNKNOWN",
+      "requiredEvidence": [
+        {
+          "kind": "documentation",
+          "path": "docs/api.md",
+          "excerpt": "verifyToken performs network revocation checks."
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "UNSUPPORTED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "UNDETERMINED",
+    "explanation": "The excerpt is not present. Local documentation absence cannot establish the underlying proposition as false."
+  },
+  {
+    "id": "insufficient_evidence-3",
+    "category": "INSUFFICIENT_EVIDENCE",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The API documentation says: All migrations are backwards compatible.",
+      "category": "UNKNOWN",
+      "requiredEvidence": [
+        {
+          "kind": "documentation",
+          "path": "docs/api.md",
+          "excerpt": "All migrations are backwards compatible."
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "UNSUPPORTED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "UNDETERMINED",
+    "explanation": "The excerpt is not present. Local documentation absence cannot establish the underlying proposition as false."
+  },
+  {
+    "id": "insufficient_evidence-4",
+    "category": "INSUFFICIENT_EVIDENCE",
+    "repositoryFixture": "evals/fixtures/repository",
+    "claim": {
+      "statement": "The API documentation says: The service has SOC 2 certification.",
+      "category": "UNKNOWN",
+      "requiredEvidence": [
+        {
+          "kind": "documentation",
+          "path": "docs/api.md",
+          "excerpt": "The service has SOC 2 certification."
+        }
+      ]
+    },
+    "expectedEvidenceStatus": "UNSUPPORTED",
+    "safeRouting": {
+      "allowedActions": [
+        "CONTINUE",
+        "AUTO_VERIFY",
+        "HUMAN_REVIEW"
+      ],
+      "forbidVerified": true
+    },
+    "groundTruth": "UNDETERMINED",
+    "explanation": "The excerpt is not present. Local documentation absence cannot establish the underlying proposition as false."
+  }
+]

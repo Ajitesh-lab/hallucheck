@@ -1,0 +1,8 @@
+{
+  "name": "hallucheck",
+  "version": "0.1.0",
+  "description": "Independent evidence verification for coding agents. Requires halluc-check on PATH.",
+  "author": {
+    "name": "HALLUCHECK contributors"
+  }
+}

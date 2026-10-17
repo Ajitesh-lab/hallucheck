@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "hallucheck": {
+      "command": "halluc-check",
+      "args": ["mcp"]
+    }
+  }
+}

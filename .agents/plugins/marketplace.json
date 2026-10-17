@@ -1,0 +1,12 @@
+{
+  "name": "hallucheck-local",
+  "interface": { "displayName": "HALLUCHECK Local" },
+  "plugins": [
+    {
+      "name": "hallucheck",
+      "source": { "source": "local", "path": "./plugins/codex" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    }
+  ]
+}

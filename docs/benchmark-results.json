@@ -1,0 +1,63 @@
+{
+  "timestamp": "2026-10-17T17:22:47.080Z",
+  "node": "v25.8.1",
+  "platform": "darwin",
+  "iterations": 100,
+  "localCached": {
+    "latencyMs": {
+      "p50": 7.683540999999991,
+      "p95": 8.223083999999972,
+      "p99": 8.542790999999994
+    },
+    "throughputPerSecond": 129.31992548311737,
+    "cacheHits": 100,
+    "stages": {
+      "event_normalisation_ms": {
+        "p50": 0.07379200000002584,
+        "p95": 0.10266699999999673,
+        "p99": 0.12024999999999864
+      },
+      "context_retrieval_ms": {
+        "p50": 7.575874999999996,
+        "p95": 8.065957999999966,
+        "p99": 8.399417
+      },
+      "evidence_collection_ms": {
+        "p50": 0,
+        "p95": 0,
+        "p99": 0
+      },
+      "jev_request_ms": {
+        "p50": 0,
+        "p95": 0,
+        "p99": 0
+      },
+      "policy_evaluation_ms": {
+        "p50": 0,
+        "p95": 0,
+        "p99": 0
+      }
+    }
+  },
+  "mockDecisionPath": {
+    "latencyMs": {
+      "p50": 18.45095900000001,
+      "p95": 18.768082999999933,
+      "p99": 28.994583000000034
+    },
+    "disclosure": "Deterministic mock fixture. No live network or Jev latency measured."
+  },
+  "nativeInteraction": {
+    "latencyMs": {
+      "p50": 0.00920799999994415,
+      "p95": 0.017707999999856838,
+      "p99": 0.0282919999999649
+    },
+    "disclosure": "Warm unchanged-warning suppression through SQLite in memory; excludes host rendering and initial evidence inspection. No separate UI."
+  },
+  "remoteModelPath": {
+    "measured": false,
+    "reason": "Live Jev latency requires explicit external inference opt-in and JEV_API_KEY."
+  },
+  "scope": "Warm in-process engine, bounded repository metadata/content snapshots, one file-existence assertion. Not cold CLI startup or large-project compiler throughput."
+}

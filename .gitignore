@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.hallucheck/
+coverage/
+*.tgz
+.DS_Store
+
+# Local credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key

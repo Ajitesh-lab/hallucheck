@@ -1,0 +1,53 @@
+{
+  "name": "halluc-check",
+  "version": "0.1.0",
+  "description": "Evidence-grounded verification for coding agents",
+  "license": "MIT",
+  "type": "module",
+  "private": false,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "packageManager": "pnpm@10.32.1",
+  "bin": {
+    "halluc-check": "bin/halluc-check.mjs"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "plugins",
+    "docs",
+    "README.md",
+    "LICENSE",
+    ".agents/plugins/marketplace.json"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:live": "HALLUCHECK_LIVE_JEV=1 vitest run tests/live.test.ts",
+    "eval": "tsx evals/run.ts",
+    "benchmark": "tsx evals/benchmarks/run.ts",
+    "check": "pnpm typecheck && pnpm test && pnpm build && pnpm eval"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "typescript": "5.9.3",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "esbuild": "^0.25.0",
+    "prettier": "3.6.2",
+    "tsx": "^4.20.0",
+    "vitest": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ajitesh-lab/hallucheck.git"
+  },
+  "homepage": "https://github.com/Ajitesh-lab/hallucheck#readme",
+  "bugs": {
+    "url": "https://github.com/Ajitesh-lab/hallucheck/issues"
+  }
+}

@@ -1,0 +1,339 @@
+{
+  "cases": 32,
+  "passed": 32,
+  "failed": [],
+  "scope": "Evidence and policy fixture evaluation; not live model performance.",
+  "evidenceClassifier": {
+    "precision": 1,
+    "recall": 0.8,
+    "falsePositiveRate": 0,
+    "abstentionRate": 0.375
+  },
+  "humanReviewRate": 0,
+  "calibration": {
+    "count": 0,
+    "brier": null
+  },
+  "results": [
+    {
+      "id": "fabricated_api-1",
+      "category": "FABRICATED_API",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "fabricated_api-2",
+      "category": "FABRICATED_API",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "fabricated_api-3",
+      "category": "FABRICATED_API",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "fabricated_api-4",
+      "category": "FABRICATED_API",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "nonexistent_symbol-1",
+      "category": "NONEXISTENT_SYMBOL",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "nonexistent_symbol-2",
+      "category": "NONEXISTENT_SYMBOL",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "nonexistent_symbol-3",
+      "category": "NONEXISTENT_SYMBOL",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "nonexistent_symbol-4",
+      "category": "NONEXISTENT_SYMBOL",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "false_test_claim-1",
+      "category": "FALSE_TEST_CLAIM",
+      "truth": "HALLUCINATED",
+      "status": "UNSUPPORTED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "false_test_claim-2",
+      "category": "FALSE_TEST_CLAIM",
+      "truth": "HALLUCINATED",
+      "status": "UNSUPPORTED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "false_test_claim-3",
+      "category": "FALSE_TEST_CLAIM",
+      "truth": "HALLUCINATED",
+      "status": "UNSUPPORTED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "false_test_claim-4",
+      "category": "FALSE_TEST_CLAIM",
+      "truth": "HALLUCINATED",
+      "status": "UNSUPPORTED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "unsupported_completion-1",
+      "category": "UNSUPPORTED_COMPLETION",
+      "truth": "UNDETERMINED",
+      "status": "NOT_CHECKED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "unsupported_completion-2",
+      "category": "UNSUPPORTED_COMPLETION",
+      "truth": "UNDETERMINED",
+      "status": "NOT_CHECKED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "unsupported_completion-3",
+      "category": "UNSUPPORTED_COMPLETION",
+      "truth": "UNDETERMINED",
+      "status": "NOT_CHECKED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "unsupported_completion-4",
+      "category": "UNSUPPORTED_COMPLETION",
+      "truth": "UNDETERMINED",
+      "status": "NOT_CHECKED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "dependency_mismatch-1",
+      "category": "DEPENDENCY_MISMATCH",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "dependency_mismatch-2",
+      "category": "DEPENDENCY_MISMATCH",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "dependency_mismatch-3",
+      "category": "DEPENDENCY_MISMATCH",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "dependency_mismatch-4",
+      "category": "DEPENDENCY_MISMATCH",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "incorrect_assumption-1",
+      "category": "INCORRECT_ASSUMPTION",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "incorrect_assumption-2",
+      "category": "INCORRECT_ASSUMPTION",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "incorrect_assumption-3",
+      "category": "INCORRECT_ASSUMPTION",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "incorrect_assumption-4",
+      "category": "INCORRECT_ASSUMPTION",
+      "truth": "HALLUCINATED",
+      "status": "CONTRADICTED",
+      "action": "AGENT_REPAIR",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "legitimate_unfamiliar_code-1",
+      "category": "LEGITIMATE_UNFAMILIAR_CODE",
+      "truth": "CORRECT",
+      "status": "VERIFIED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "legitimate_unfamiliar_code-2",
+      "category": "LEGITIMATE_UNFAMILIAR_CODE",
+      "truth": "CORRECT",
+      "status": "VERIFIED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "legitimate_unfamiliar_code-3",
+      "category": "LEGITIMATE_UNFAMILIAR_CODE",
+      "truth": "CORRECT",
+      "status": "VERIFIED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "legitimate_unfamiliar_code-4",
+      "category": "LEGITIMATE_UNFAMILIAR_CODE",
+      "truth": "CORRECT",
+      "status": "VERIFIED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "insufficient_evidence-1",
+      "category": "INSUFFICIENT_EVIDENCE",
+      "truth": "UNDETERMINED",
+      "status": "UNSUPPORTED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "insufficient_evidence-2",
+      "category": "INSUFFICIENT_EVIDENCE",
+      "truth": "UNDETERMINED",
+      "status": "UNSUPPORTED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "insufficient_evidence-3",
+      "category": "INSUFFICIENT_EVIDENCE",
+      "truth": "UNDETERMINED",
+      "status": "UNSUPPORTED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    },
+    {
+      "id": "insufficient_evidence-4",
+      "category": "INSUFFICIENT_EVIDENCE",
+      "truth": "UNDETERMINED",
+      "status": "UNSUPPORTED",
+      "action": "CONTINUE",
+      "risk": null,
+      "provider": "offline",
+      "pass": true
+    }
+  ]
+}
