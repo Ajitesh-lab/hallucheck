@@ -15,15 +15,27 @@ npm link
 node bin/install-skill.mjs
 ```
 
-`npm link` makes `halluc-check` available on your PATH. The skill installer adds the [Codex skill](../plugins/codex/skills/hallucheck/SKILL.md) to `~/.codex/skills/hallucheck`, honoring `CODEX_HOME` when set. It refuses to replace an existing skill. You can supply another destination as the script's only argument.
+`npm link` makes `halluc-check` available on your PATH. The skill installer adds the [Codex skill](../plugins/codex/skills/hallucheck/SKILL.md) to `~/.codex/skills/hallucheck`, honoring `CODEX_HOME` when set. **It also enables automatic reviews for substantial coding work and extensive answers by default.** Short replies and trivial edits are skipped. It adds a marked policy block to the user-level `AGENTS.md`, preserves existing instructions, and backs up that file before changing it. It refuses to replace an existing skill; an optional destination may be supplied.
 
-Start a new local Codex chat and send:
+Start a new local Codex chat and work normally; qualifying tasks are reviewed without asking for the skill each time. You can also explicitly request a review of any task:
 
 ```text
 $hallucheck Review this task for unsupported claims and fabricated APIs.
 ```
 
-The skill uses the installed CLI even if MCP is not connected. To install the full Codex or Claude Code plugin, including supported lifecycle hooks and native finding actions, follow [Agent installation](../README.md#agent-installation). The standalone skill does not install or trust hooks. A key is optional for local file, import, export, and compiler evidence.
+The skill uses the installed CLI even if MCP is not connected. To install the full Codex or Claude Code plugin, including supported lifecycle hooks and native finding actions, follow [Agent installation](../README.md#agent-installation). The standalone skill activates agent instructions; it does not install or trust hooks. A key is optional for local file, import, export, and compiler evidence.
+
+If asking an agent to install it, use this prompt:
+
+```text
+Install HALLUCHECK from https://github.com/Ajitesh-lab/hallucheck.
+Follow docs/SETUP.md and use the provided installer, or run the bundled
+activation script if you download the skill folder directly. Enable automatic
+reviews only for substantial coding work and extensive informational answers.
+Keep API-key entry in my own terminal, never in this chat.
+```
+
+For a manual-only installation use `node bin/install-skill.mjs --manual`. If the skill was already downloaded by another installer, run `node /path/to/hallucheck/scripts/activate.mjs enable` as part of setup. Copying files alone cannot execute activation. The managed policy is for local Codex; Claude Code uses the full plugin's lifecycle hooks.
 
 ## 2. Get your TypeSafe key
 
@@ -74,21 +86,23 @@ halluc-check daemon start
 
 If no daemon is running, just run `halluc-check daemon start`. Reconnect an existing agent/MCP session so it picks up the new settings. A shell-supplied `JEV_API_KEY`, `TYPESAFE_API_KEY`, or `AI_GATEWAY_API_KEY` overrides the saved credential. `HALLUCHECK_EXTERNAL_INFERENCE=0` explicitly disables ordinary inference, and `HALLUCHECK_OFFLINE=1` forces local-only checking.
 
-## Review every task
+## Automatic reviews for substantial work
 
-For local Codex, optionally add this to your user-level `~/.codex/AGENTS.md`, merging with your existing instructions:
+The default installer activates this behavior. Manage it without reinstalling:
 
-```markdown
-Before each final response, use the HALLUCHECK skill to review the proposed
-completion against the active workspace. Run halluc-check review-task with
-the absolute project --root and --json, passing completion text and specific
-evidence-bearing claims as JSON on stdin. Review major milestones on long tasks.
-Investigate contradictions within the authorized task. Do not treat UNSUPPORTED
-or NOT_CHECKED as verified success. Append the skill's concise uncertainty note
-only for specific material unresolved claims; never invent a percentage.
+```sh
+halluc-check auto-review status
+halluc-check auto-review enable
+halluc-check auto-review disable
 ```
 
-This is an agent-followed workflow. Full plugin hooks require the host's trust review and depend on supported events; MCP alone does not intercept every action. General prose without specific independent evidence stays unverified. Jev percentages are uncalibrated estimates for a particular claim, not guarantees about the whole answer.
+Automatic reviews cover meaningful implementation, debugging, code reviews and extensive factual reports or explanations. Greetings, acknowledgements, brief follow-ups, simple answers, and trivial typo/formatting edits are skipped. Judge the work actually performed: “build an app” is a short prompt that can still produce a large task. Explicitly asking for HALLUCHECK runs a review even for a small task. A qualifying review requires an actual tool result with an `eventId` and findings; if checking fails, the agent must disclose that the affected work remains unverified.
+
+`disable` removes only the managed policy block. Existing manual instructions and full-plugin hooks remain unchanged. Changes take effect in chats that load the updated instructions; start a new chat if needed. Enable is idempotent and keeps a private backup of existing instructions before a change.
+
+The full plugin additionally compares source fingerprints at the start and end of a request. Old changes already present before a short follow-up do not trigger a new task-end review. Source changes during this request do. Without source changes, the hook checks extensive prompts/answers (at least 2,000 characters or 350 whitespace-separated words), as well as explicit review requests. Without a prompt baseline, or when discovery is incomplete, it conservatively checks instead of claiming it safely skipped. The size heuristic is approximate; a small source edit can still trigger the code check. Per-edit observations and mandatory tool authorization rules remain separate from the task-end size filter.
+
+Standalone activation is an agent-followed workflow. Full plugin hooks require the host's trust review and depend on supported events; MCP alone does not intercept every action. General prose without specific independent evidence stays unverified. Jev percentages are uncalibrated estimates for a particular claim, not guarantees about the whole answer.
 
 ## Rotate or remove your key
 

@@ -11,6 +11,7 @@ import {
 import { requiresAuthorization } from "../../../core/src/policy/index.js";
 import { redact } from "../../../core/src/security/index.js";
 import { rpc } from "../../../../apps/daemon/src/index.js";
+import { taskBaseline, shouldReviewTask } from "./task-scope.js";
 export const hookInput = z
   .object({
     session_id: z.string(),
@@ -151,6 +152,11 @@ export async function handleHook(
   if (native.hook_event_name === "UserPromptSubmit") {
     const engine = await Engine.open(root);
     try {
+      engine.store.saveTaskBaseline(
+        engine.root,
+        native.session_id,
+        taskBaseline(await engine.repo.context(), native.prompt ?? ""),
+      );
       const service = new FindingInteractionService(engine);
       const action = await service.userCommand(
         native.prompt ?? "",
@@ -161,7 +167,7 @@ export async function handleHook(
         return {
           hookSpecificOutput: {
             hookEventName: "UserPromptSubmit",
-            additionalContext: `HALLUCHECK task review is enabled for this request. Active repositoryRoot: ${JSON.stringify(root)}. Before the final response, review the proposed completion using halluc_check_analyze with eventType AGENT_STOP, this repositoryRoot, a concise text summary, and explicit claims with requiredEvidence for material file/export/dependency/test assertions. If MCP is unavailable or points at the plugin cache, run halluc-check review-task --root with this absolute path and --json, supplying JSON {text, claims?, filePaths?} on stdin. Inspect findings and address contradictions within the user's authorized task. Do not turn UNSUPPORTED or NOT_CHECKED into verified success; state material limits. The Stop hook also performs a bounded source review. This applies to small and large tasks; factual prose without source evidence remains unverified.`,
+            additionalContext: `HALLUCHECK automatically reviews substantial coding work, meaningful code reviews and extensive factual answers. Skip short replies, simple follow-ups and trivial text edits unless the user explicitly asks for a review. Active repositoryRoot: ${JSON.stringify(root)}. For qualifying work, before the final response review the proposed completion using halluc_check_analyze with eventType AGENT_STOP, this repositoryRoot, a concise text summary, and explicit claims with requiredEvidence for material assertions. If MCP is unavailable or points at the plugin cache, run halluc-check review-task --root with this absolute path and --json, supplying JSON {text, claims?, filePaths?} on stdin. Require a real result with eventId and findings. Inspect contradictions within the authorized task; disclose check failures instead of silently skipping. UNSUPPORTED and NOT_CHECKED remain uncertainty. The Stop hook also reviews code changed in this task and extensive answers; general prose without evidence stays unverified.`,
           },
         };
       const text = redact(JSON.stringify(action));
@@ -192,6 +198,28 @@ export async function handleHook(
   const event = adaptHook(host, input);
   if ((await realpath(event.repositoryRoot)) !== (await realpath(root)))
     throw new Error("Hook repository mismatch");
+  if (event.eventType === "AGENT_STOP") {
+    const engine = await Engine.open(root);
+    try {
+      const context = await engine.repo.context();
+      if (
+        !shouldReviewTask(
+          context,
+          native.last_assistant_message ?? "",
+          engine.store.taskBaseline(engine.root, native.session_id),
+        )
+      ) {
+        engine.store.audit("auto-review-skipped", {
+          sessionId: native.session_id,
+          reason: "brief task without source changes",
+          snapshot: context.snapshot,
+        });
+        return {};
+      }
+    } finally {
+      engine.close();
+    }
+  }
   if (
     event.eventType === "PRE_TOOL_EXECUTION" &&
     !requiresAuthorization(event.toolName, event.toolInput)

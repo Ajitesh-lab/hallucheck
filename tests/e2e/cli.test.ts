@@ -292,14 +292,21 @@ it("copies installable plugins and uninstalls only marked directories", async ()
 });
 it("installs a standalone skill without replacing an existing skill", async () => {
   const target = path.join(root, "standalone-skill");
-  await exec(process.execPath, ["bin/install-skill.mjs", target]);
+  const env = {
+    ...process.env,
+    CODEX_HOME: path.join(root, "test-codex-home"),
+  };
+  await exec(process.execPath, ["bin/install-skill.mjs", target], { env });
   const { readFile } = await import("node:fs/promises");
   expect(await readFile(path.join(target, "SKILL.md"), "utf8")).toContain(
     "Final-response note",
   );
   await expect(
-    exec(process.execPath, ["bin/install-skill.mjs", target]),
+    exec(process.execPath, ["bin/install-skill.mjs", target], { env }),
   ).rejects.toThrow();
+  expect(
+    await readFile(path.join(env.CODEX_HOME, "AGENTS.md"), "utf8"),
+  ).toContain("substantive coding work");
 });
 it("reports saved credentials without showing them and refuses noninteractive secret entry or key arguments", async () => {
   const dir = path.join(root, "auth-test");
@@ -346,6 +353,26 @@ it("reports saved credentials without showing them and refuses noninteractive se
     { env },
   );
   expect(JSON.parse(removed.stdout).removed).toBe(true);
+});
+it("manages substantial-task activation through the packaged CLI without reinstalling", async () => {
+  const home = path.join(root, "managed-codex-home");
+  const env = { ...process.env, CODEX_HOME: home };
+  const run = async (mode: string) =>
+    JSON.parse(
+      (
+        await exec(process.execPath, [cli, "auto-review", mode, "--json"], {
+          env,
+        })
+      ).stdout,
+    );
+  expect((await run("status")).enabled).toBe(false);
+  expect(await run("enable")).toMatchObject({
+    enabled: true,
+    scope: "substantial-tasks",
+    hooksInstalled: false,
+  });
+  expect((await run("status")).enabled).toBe(true);
+  expect((await run("disable")).enabled).toBe(false);
 });
 it("runs the actual Stop hook completion review with recursion protection", async () => {
   const { spawn } = await import("node:child_process");

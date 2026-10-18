@@ -1,9 +1,17 @@
 ---
 name: hallucheck
-description: Handle HALLUCHECK task-review findings and add a brief uncertainty note to the final response. Inspect evidence, request an AI investigation, flag a warning, acknowledge risk, or change operating mode in the current conversation. Use for HALLUCHECK reviews and actions, not ordinary debugging without a finding.
+description: Automatically review substantial coding work, meaningful code reviews, and extensive factual answers before the final response. Also handle HALLUCHECK findings and uncertainty notes. Skip greetings, short follow-ups, simple answers and trivial text edits unless the user explicitly requests a review.
 ---
 
 Keep the user in this conversation. Do not launch a new coding session, frontend, browser or terminal UI for these actions.
+
+## Automatic activation and task size
+
+For Claude Code, install the full HALLUCHECK plugin to receive automatic lifecycle checks. Do not write Codex user instructions as part of a Claude Code installation. In Codex, the repository's standalone installer enables a managed substantial-task policy by default; `halluc-check auto-review enable`, `status`, and `disable` manage that Codex policy. Activation grants neither hook trust nor API access.
+
+Automatically review substantive implementation, debugging, meaningful code reviews, and lengthy explanations/reports with material factual claims. Judge the work actually performed, not the brevity of the initial prompt. Skip greetings, acknowledgements, short follow-ups, simple factual answers and trivial typo/formatting edits. An explicit request to review still takes precedence and runs the check for a small task. Do not add an uncertainty footer solely because a small reply was not checked.
+
+For qualifying work, require an actual checker response with `eventId`, findings and provider status before saying a review ran. Inspect its evidence and apply the final-note rules below. If the checker is unavailable, disclose that the affected work remains unverified instead of silently skipping. These agent instructions do not guarantee execution or verify every sentence; supported trusted hooks add an independent bounded review.
 
 ## Task review and key setup
 

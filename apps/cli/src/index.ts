@@ -151,6 +151,24 @@ async function humanReview(
 }
 try {
   switch (args[0] ?? "help") {
+    case "auto-review": {
+      const command = args[1] ?? "status";
+      if (!["enable", "status", "disable"].includes(command))
+        throw new Error("Use auto-review enable | status | disable");
+      const activation = fileURLToPath(
+        new URL(
+          "../plugins/codex/skills/hallucheck/scripts/activate.mjs",
+          import.meta.url,
+        ),
+      );
+      const output = await promisify(execFile)(
+        process.execPath,
+        [activation, command],
+        { maxBuffer: 1_000_000 },
+      );
+      print(JSON.parse(output.stdout));
+      break;
+    }
     case "auth": {
       if (args.slice(2).some((arg) => !["--json"].includes(arg)))
         throw new Error(
@@ -404,7 +422,7 @@ try {
     case "--help":
     case "-h":
       console.log(
-        "halluc-check auth login/status/logout | init | scan [--changed | --file PATH] | review-task (JSON stdin: text, claims?, filePaths?) | daemon start/stop | status | findings | review | approve ID | reject ID | report | benchmark | doctor [--jev] | mcp\nOptions: --root PATH --json --format json\nJev: auth login stores your TypeSafe key with hidden input and explicit inference consent. doctor --jev sends one synthetic model request.",
+        "halluc-check auto-review enable/status/disable | auth login/status/logout | init | scan [--changed | --file PATH] | review-task (JSON stdin: text, claims?, filePaths?) | daemon start/stop | status | findings | review | approve ID | reject ID | report | benchmark | doctor [--jev] | mcp\nOptions: --root PATH --json --format json\nJev: auth login stores your TypeSafe key with hidden input and explicit inference consent. doctor --jev sends one synthetic model request.",
       );
       break;
     default:

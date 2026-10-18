@@ -8,6 +8,12 @@ import {
   id,
 } from "../../shared/src/index.js";
 import { sanitize } from "../../core/src/security/index.js";
+export interface TaskBaseline {
+  fileHashes: Record<string, string>;
+  extensiveRequest: boolean;
+  explicitReview: boolean;
+  timestamp: string;
+}
 export class Store {
   readonly db: DatabaseSync;
   constructor(file: string) {
@@ -27,6 +33,32 @@ export class Store {
     this.db.exec(
       "CREATE TABLE IF NOT EXISTS finding_lifecycle(finding_id TEXT PRIMARY KEY,root TEXT NOT NULL,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS repair_runs(id TEXT PRIMARY KEY,root TEXT NOT NULL,lineage TEXT NOT NULL,data TEXT NOT NULL); CREATE INDEX IF NOT EXISTS repair_lineage ON repair_runs(root,lineage); CREATE TABLE IF NOT EXISTS presentations(finding_id TEXT NOT NULL,host TEXT NOT NULL,channel TEXT NOT NULL,timestamp TEXT NOT NULL,PRIMARY KEY(finding_id,host,channel)); CREATE TABLE IF NOT EXISTS preferences(root TEXT PRIMARY KEY,data TEXT NOT NULL);",
     );
+  }
+  taskBaseline(root: string, sessionId: string): TaskBaseline | undefined {
+    this.db.exec(
+      "CREATE TABLE IF NOT EXISTS task_baselines(root TEXT NOT NULL,session_id TEXT NOT NULL,data TEXT NOT NULL,PRIMARY KEY(root,session_id))",
+    );
+    const row = this.db
+      .prepare("SELECT data FROM task_baselines WHERE root=? AND session_id=?")
+      .get(root, sessionId) as { data: string } | undefined;
+    return row ? (JSON.parse(row.data) as TaskBaseline) : undefined;
+  }
+  saveTaskBaseline(
+    root: string,
+    sessionId: string,
+    baseline: TaskBaseline,
+  ): void {
+    this.db.exec(
+      "CREATE TABLE IF NOT EXISTS task_baselines(root TEXT NOT NULL,session_id TEXT NOT NULL,data TEXT NOT NULL,PRIMARY KEY(root,session_id))",
+    );
+    this.db
+      .prepare("INSERT OR REPLACE INTO task_baselines VALUES(?,?,?)")
+      .run(root, sessionId, JSON.stringify(baseline));
+    this.db
+      .prepare(
+        "DELETE FROM task_baselines WHERE root=? AND rowid NOT IN (SELECT rowid FROM task_baselines WHERE root=? ORDER BY rowid DESC LIMIT 64)",
+      )
+      .run(root, root);
   }
   lifecycle(findingId: string): FindingLifecycle | undefined {
     const row = this.db

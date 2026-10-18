@@ -42,7 +42,7 @@ halluc-check scan --root /absolute/path/to/repository --changed
 halluc-check report --root /absolute/path/to/repository --format json
 ```
 
-The installer adds the standalone skill to `~/.codex/skills/hallucheck` (or `$CODEX_HOME/skills/hallucheck`) and refuses to overwrite an existing skill. Start a new local Codex chat and ask `$hallucheck` to review your work. The skill requires the installed CLI; it is not a standalone ChatGPT app or a guarantee that every sentence is checked. For automatic reviews on each task, use the optional instruction in [setup](docs/SETUP.md#review-every-task). The full plugin with lifecycle hooks is available under [Agent installation](#agent-installation).
+The installer adds the standalone skill to `~/.codex/skills/hallucheck` (or `$CODEX_HOME/skills/hallucheck`) and **enables automatic reviews for substantial coding work and extensive answers by default**. It preserves existing user instructions, adds a managed policy block, and refuses to overwrite an existing skill. Short replies and trivial edits are skipped. Start a new local Codex chat and work normally; explicitly invoke `$hallucheck` to force a review of any size. Use `--manual` to install without activation, or manage an existing installation with `halluc-check auto-review enable|status|disable`. See [automatic setup](docs/SETUP.md#automatic-reviews-for-substantial-work), including the prompt to give an installing agent. The skill requires the installed CLI; it is not a standalone ChatGPT app or a guarantee that every sentence is checked. The full plugin is under [Agent installation](#agent-installation).
 
 For a reproducible example that deliberately includes absent symbols and legitimate unusual APIs:
 
@@ -53,7 +53,7 @@ pnpm eval
 
 Initialize configuration in the repository being checked with `halluc-check init`. Start/reuse its persistent warm daemon with `halluc-check daemon start`. `halluc-check daemon stop` stops it. Hooks start the daemon at SessionStart automatically; manual CLI/MCP calls use an existing daemon or the shared engine directly.
 
-Normal prompts instruct the agent to review every task before its final response. Stop hooks independently review a bounded source selection, including untracked files. A review can also run explicitly:
+Normal prompts instruct the agent to review substantive coding tasks and extensive answers before its final response, while skipping brief replies. Stop hooks compare source changes against the current request's baseline and review extensive prompts/answers; old, already-dirty source does not trigger a review on a small follow-up. Scans are bounded and include untracked files. A review can also run explicitly, regardless of size:
 
 ```sh
 halluc-check review-task --root /absolute/path/to/project --json <<'JSON'

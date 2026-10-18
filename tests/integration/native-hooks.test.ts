@@ -11,7 +11,7 @@ afterEach(async () => {
   );
 });
 it.each(["codex", "claude-code"] as const)(
-  "instructs the agent to review every ordinary %s task against the actual project",
+  "instructs the agent to review substantial %s tasks and skip brief replies",
   async (host) => {
     const root = await mkdtemp(path.join(tmpdir(), "hc-prompt-"));
     roots.push(root);
@@ -27,7 +27,8 @@ it.each(["codex", "claude-code"] as const)(
     );
     expect(output).not.toHaveProperty("decision");
     const text = JSON.stringify(output);
-    expect(text).toContain("Before the final response");
+    expect(text).toContain("before the final response");
+    expect(text).toContain("Skip short replies");
     expect(text).toContain(root);
     expect(text).toContain("review-task");
     expect(text).toContain("UNSUPPORTED");
