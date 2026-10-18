@@ -180,7 +180,7 @@ export const ConfigSchema = z.object({
     })),
   enabled: z.boolean().default(true),
   provider: z.enum(["jev", "offline"]).default("jev"),
-  model: z.string().default("jev-1.13"),
+  model: z.string().default("jev-1.13.0"),
   privacy: z
     .object({
       allowExternalInference: z.boolean().default(false),

@@ -157,7 +157,13 @@ export async function handleHook(
         host,
         native.session_id,
       );
-      if (action === undefined) return {};
+      if (action === undefined)
+        return {
+          hookSpecificOutput: {
+            hookEventName: "UserPromptSubmit",
+            additionalContext: `HALLUCHECK task review is enabled for this request. Active repositoryRoot: ${JSON.stringify(root)}. Before the final response, review the proposed completion using halluc_check_analyze with eventType AGENT_STOP, this repositoryRoot, a concise text summary, and explicit claims with requiredEvidence for material file/export/dependency/test assertions. If MCP is unavailable or points at the plugin cache, run halluc-check review-task --root with this absolute path and --json, supplying JSON {text, claims?, filePaths?} on stdin. Inspect findings and address contradictions within the user's authorized task. Do not turn UNSUPPORTED or NOT_CHECKED into verified success; state material limits. The Stop hook also performs a bounded source review. This applies to small and large tasks; factual prose without source evidence remains unverified.`,
+          },
+        };
       const text = redact(JSON.stringify(action));
       return {
         systemMessage: "HALLUCHECK: " + text.slice(0, 3000),

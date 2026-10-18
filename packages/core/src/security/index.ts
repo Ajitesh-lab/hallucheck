@@ -9,6 +9,8 @@ export function excluded(
   allowDependencies = false,
 ): boolean {
   const normalized = file.split(path.sep).join("/");
+  const dependency =
+    allowDependencies && normalized.split("/").includes("node_modules");
   return (
     normalized
       .split("/")
@@ -17,7 +19,7 @@ export function excluded(
           ".git",
           ...(allowDependencies ? [] : ["node_modules"]),
           ".hallucheck",
-          "dist",
+          ...(dependency ? [] : ["dist"]),
         ].includes(p),
       ) ||
     patterns.some(
@@ -78,7 +80,7 @@ export function redact(text: string): string {
     );
   return result
     .replace(
-      /\b(?:sk-[A-Za-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{10,}|AKIA[A-Z0-9]{16})\b/g,
+      /\b(?:sk-[A-Za-z0-9_-]{8,}|vck_[A-Za-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{10,}|AKIA[A-Z0-9]{16})\b/g,
       "[REDACTED]",
     )
     .replace(/(Bearer\s+)[A-Za-z0-9._~+\/-]+/gi, "$1[REDACTED]")

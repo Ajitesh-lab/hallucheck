@@ -14,12 +14,21 @@ import {
 import { redact } from "../../../packages/core/src/security/index.js";
 import { rpc } from "../../daemon/src/index.js";
 import { handleHook } from "../../../packages/integrations/claude-code/src/index.js";
+import {
+  JevClient,
+  ProviderUnavailable,
+  jevEndpoint,
+} from "../../../packages/jev-provider/src/index.js";
 const args = process.argv.slice(2);
 const value = (flag: string): string | undefined => {
   const i = args.indexOf(flag);
   return i >= 0 ? args[i + 1] : undefined;
 };
-const root = await realpath(value("--root") ?? process.cwd());
+// Auth rejects all key/path arguments before touching a supplied path.
+let root =
+  args[0] === "auth"
+    ? process.cwd()
+    : await realpath(value("--root") ?? process.cwd());
 const json = args.includes("--json") || value("--format") === "json";
 function print(data: unknown): void {
   if (json) {
@@ -52,6 +61,15 @@ function print(data: unknown): void {
     console.log(
       typeof data === "string" ? data : JSON.stringify(data, null, 2),
     );
+}
+async function readInput(): Promise<unknown> {
+  let input = "";
+  for await (const chunk of process.stdin) {
+    input += String(chunk);
+    if (Buffer.byteLength(input) > 1_000_000)
+      throw new Error("Input too large");
+  }
+  return JSON.parse(input);
 }
 async function engineRead<T>(
   fn: (engine: Engine) => Promise<T> | T,
@@ -133,6 +151,15 @@ async function humanReview(
 }
 try {
   switch (args[0] ?? "help") {
+    case "auth": {
+      if (args.slice(2).some((arg) => !["--json"].includes(arg)))
+        throw new Error(
+          "Auth accepts no key arguments. Use halluc-check auth login in your terminal; input is hidden.",
+        );
+      const { auth } = await import("./auth.js");
+      print(await auth(args[1]));
+      break;
+    }
     case "init": {
       const file = path.join(root, "hallucheck.config.json");
       await writeFile(
@@ -169,6 +196,36 @@ try {
         return viaDaemon({ op: "analyze", event }, () => engine.analyze(event));
       });
       print(result);
+      break;
+    }
+    case "review-task": {
+      const { EventSchema } = await import(
+        "../../../packages/shared/src/index.js"
+      );
+      const input = await readInput();
+      if (!input || typeof input !== "object" || Array.isArray(input))
+        throw new Error(
+          "Provide JSON with text and optional claims/filePaths on stdin",
+        );
+      const data = input as Record<string, unknown>;
+      const event = EventSchema.parse({
+        text: data.text,
+        claims: data.claims,
+        filePaths: data.filePaths,
+        repositoryRoot: root,
+        agentType: "cli",
+        sessionId: process.env.CODEX_THREAD_ID ?? "task-review",
+        eventType: "AGENT_STOP",
+      });
+      if (!event.text?.trim() && !event.claims.length)
+        throw new Error(
+          "Task review requires completion text or explicit claims",
+        );
+      print(
+        await viaDaemon({ op: "analyze", event }, () =>
+          engineRead((engine) => engine.analyze(event)),
+        ),
+      );
       break;
     }
     case "status":
@@ -228,6 +285,43 @@ try {
           checks[command] = "missing";
         }
       checks.provider = await engineRead((engine) => engine.providerStatus);
+      if (args.includes("--jev")) {
+        // An explicit diagnostic sends only this synthetic assertion, never repository data.
+        const apiKey =
+          process.env.JEV_API_KEY ??
+          process.env.TYPESAFE_API_KEY ??
+          process.env.AI_GATEWAY_API_KEY;
+        try {
+          const endpoint = jevEndpoint(apiKey, process.env.JEV_BASE_URL);
+          const response = await new JevClient({
+            apiKey,
+            baseUrl: process.env.JEV_BASE_URL,
+            allowExternalInference: true,
+            timeoutMs: 10000,
+            retries: 0,
+          }).decide({
+            model: process.env.JEV_MODEL ?? "jev-latest",
+            state: "The number is 2.",
+            questions: {
+              even: { type: "noul", instructions: "Is the number even?" },
+            },
+          });
+          checks.jev = {
+            ok: true,
+            endpoint: endpoint.href,
+            model: response.model,
+            modelVersion: response.model_version,
+          };
+        } catch (error) {
+          checks.jev = {
+            ok: false,
+            code:
+              error instanceof ProviderUnavailable ? error.code : "UNAVAILABLE",
+            message: redact((error as Error).message),
+          };
+          process.exitCode = 1;
+        }
+      }
       print(checks);
       break;
     }
@@ -284,19 +378,19 @@ try {
       const host = args[1];
       if (host !== "claude-code" && host !== "codex")
         throw new Error("Unknown hook host");
-      let input = "";
-      for await (const chunk of process.stdin) {
-        input += String(chunk);
-        if (Buffer.byteLength(input) > 1_000_000)
-          throw new Error("Hook input too large");
-      }
-      const output = await handleHook(host, JSON.parse(input), root);
+      const input = await readInput();
+      // Hook cwd is supplied by the host. A plugin may launch from its cache.
+      const { hookInput } = await import(
+        "../../../packages/integrations/claude-code/src/index.js"
+      );
+      if (!value("--root")) root = await realpath(hookInput.parse(input).cwd);
+      const output = await handleHook(host, input, root);
       console.log(JSON.stringify(output));
       break;
     }
     case "mcp":
       await import("../../mcp-server/src/index.js").then((m) =>
-        m.startMcp(root),
+        m.startMcp(value("--root")),
       );
       break;
     case "benchmark": {
@@ -310,7 +404,7 @@ try {
     case "--help":
     case "-h":
       console.log(
-        "halluc-check init | scan [--changed | --file PATH] | daemon start/stop | status | findings | review | approve ID | reject ID | report | benchmark | doctor | mcp\nOptions: --root PATH --json --format json\nJev: explicitly enable external inference and set JEV_API_KEY.",
+        "halluc-check auth login/status/logout | init | scan [--changed | --file PATH] | review-task (JSON stdin: text, claims?, filePaths?) | daemon start/stop | status | findings | review | approve ID | reject ID | report | benchmark | doctor [--jev] | mcp\nOptions: --root PATH --json --format json\nJev: auth login stores your TypeSafe key with hidden input and explicit inference consent. doctor --jev sends one synthetic model request.",
       );
       break;
     default:

@@ -10,9 +10,14 @@ import {
 } from "../../../packages/shared/src/index.js";
 export function registerInteractionTools(
   server: McpServer,
-  engine: Engine,
+  getEngine: (repositoryRoot?: string) => Promise<Engine>,
 ): void {
-  const service = new FindingInteractionService(engine);
+  const repositoryRoot = z
+    .string()
+    .optional()
+    .describe(
+      "Absolute active project path; pass the same root used to create the finding.",
+    );
   const result = (value: unknown) => ({
     content: [{ type: "text" as const, text: JSON.stringify(value) }],
     structuredContent: { result: value },
@@ -84,6 +89,7 @@ export function registerInteractionTools(
       description:
         "Show evidence or offer native user choices for Fix with AI, Flag for Later, Accept Risk. Repairs remain in this session. User decisions require an actual elicitation response or native user command.",
       inputSchema: {
+        repositoryRoot,
         findingId: z.string(),
         action: z.enum(["choose", "fix", "evidence", "flag", "accept_risk"]),
         sessionId: z.string().default("mcp-current"),
@@ -91,7 +97,9 @@ export function registerInteractionTools(
       },
       _meta: { "anthropic/requiresUserInteraction": true },
     },
-    async ({ findingId, action, sessionId, detailed }) => {
+    async ({ findingId, action, sessionId, detailed, repositoryRoot }) => {
+      const engine = await getEngine(repositoryRoot);
+      const service = new FindingInteractionService(engine);
       const host = adapter();
       const view = await service.evidence(findingId, detailed);
       if (action === "evidence") return result(view);
@@ -137,27 +145,41 @@ export function registerInteractionTools(
       description:
         "Independently recheck a same-session repair. Agent summary is audited, never used as proof. Can also cancel a repair without losing its finding.",
       inputSchema: {
+        repositoryRoot,
         repairId: z.string(),
         agentSummary: z.string().max(2000).optional(),
         attemptedRepair: z.boolean().default(true),
         cancel: z.boolean().default(false),
       },
     },
-    async ({ repairId, agentSummary, attemptedRepair, cancel }) =>
-      result(
+    async ({
+      repairId,
+      agentSummary,
+      attemptedRepair,
+      cancel,
+      repositoryRoot,
+    }) => {
+      const service = new FindingInteractionService(
+        await getEngine(repositoryRoot),
+      );
+      return result(
         cancel
           ? service.cancel(repairId)
           : await service.complete(repairId, { agentSummary, attemptedRepair }),
-      ),
+      );
+    },
   );
   server.registerTool(
     "halluc_check_settings",
     {
       description:
         "Read persistent interaction mode and real negotiated host capabilities, or request a native user-confirmed mode change.",
-      inputSchema: { mode: OperatingMode.optional() },
+      inputSchema: { repositoryRoot, mode: OperatingMode.optional() },
     },
-    async ({ mode }) => {
+    async ({ mode, repositoryRoot }) => {
+      const service = new FindingInteractionService(
+        await getEngine(repositoryRoot),
+      );
       const host = adapter();
       if (!mode)
         return result({
@@ -200,8 +222,13 @@ export function registerInteractionTools(
     {
       description:
         "List durable open, flagged, accepted-risk and stale findings with lifecycle and evidence status kept separate.",
-      inputSchema: {},
+      inputSchema: { repositoryRoot },
     },
-    async () => result(await service.list()),
+    async ({ repositoryRoot }) =>
+      result(
+        await new FindingInteractionService(
+          await getEngine(repositoryRoot),
+        ).list(),
+      ),
   );
 }

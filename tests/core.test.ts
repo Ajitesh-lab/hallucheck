@@ -7,8 +7,14 @@ import { ConfigSchema } from "../packages/shared/src/index.js";
 import { normalizeEvent } from "../packages/core/src/events/index.js";
 import { determineStatus } from "../packages/core/src/evidence/index.js";
 import { extractClaims } from "../packages/core/src/claims/index.js";
-import { safePath, sanitize } from "../packages/core/src/security/index.js";
+import {
+  safePath,
+  sanitize,
+  excluded,
+} from "../packages/core/src/security/index.js";
 import { route } from "../packages/core/src/policy/index.js";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 const roots: string[] = [];
 const engines: Engine[] = [];
 export async function fixture() {
@@ -28,6 +34,99 @@ afterEach(async () => {
   );
 });
 describe("functional core", () => {
+  it("resolves installed package exports in dist without permitting project build output or secrets", async () => {
+    const root = await fixture();
+    await writeFile(path.join(root, "package.json"), '{"type":"module"}');
+    const pkg = path.join(root, "node_modules", "real-package");
+    await mkdir(path.join(pkg, "dist"), { recursive: true });
+    await writeFile(
+      path.join(pkg, "package.json"),
+      JSON.stringify({
+        name: "real-package",
+        type: "module",
+        exports: {
+          ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
+        },
+      }),
+    );
+    await writeFile(
+      path.join(pkg, "dist", "index.d.ts"),
+      "export declare const actual: number;",
+    );
+    await writeFile(
+      path.join(root, "api.ts"),
+      'import { actual } from "real-package"; export const value: number = actual;',
+    );
+    const engine = await Engine.open(root, { memory: true });
+    engines.push(engine);
+    const result = await engine.analyze({
+      repositoryRoot: root,
+      eventType: "MANUAL_SCAN",
+      filePaths: ["api.ts"],
+    });
+    expect(result.findings.every((f) => f.status === "VERIFIED")).toBe(true);
+    expect(excluded("dist/private.ts", [], true)).toBe(true);
+    expect(
+      excluded("node_modules/real-package/dist/index.d.ts", [], true),
+    ).toBe(false);
+    expect(
+      excluded("node_modules/real-package/dist/.env", [".env"], true),
+    ).toBe(true);
+    expect(excluded("node_modules/real-package/.git/config", [], true)).toBe(
+      true,
+    );
+    await expect(
+      safePath(root, "node_modules/real-package/dist/index.d.ts"),
+    ).rejects.toThrow();
+  });
+  it("includes new untracked source in completion review when tracked edits also exist", async () => {
+    const root = await fixture();
+    const exec = promisify(execFile);
+    await exec("git", ["init", root]);
+    await exec("git", ["-C", root, "add", "."]);
+    await exec("git", [
+      "-C",
+      root,
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.com",
+      "-c",
+      "commit.gpgsign=false",
+      "commit",
+      "-m",
+      "fixture",
+    ]);
+    await writeFile(path.join(root, "api.ts"), "export const changed = 1;");
+    await writeFile(
+      path.join(root, "new.ts"),
+      'import { invented } from "nonexistent-package"; export const x = invented();',
+    );
+    const engine = await Engine.open(root, { memory: true });
+    engines.push(engine);
+    const result = await engine.analyze({
+      repositoryRoot: root,
+      eventType: "AGENT_STOP",
+      text: "Everything works.",
+      claims: [
+        {
+          statement: "package exists",
+          requiredEvidence: [{ kind: "file", path: "package.json" }],
+        },
+      ],
+    });
+    expect(
+      result.findings.some(
+        (f) =>
+          f.claim.relatedFiles.includes("new.ts") &&
+          f.status === "CONTRADICTED",
+      ),
+    ).toBe(true);
+    expect(
+      result.findings.find((f) => f.claim.statement === "Everything works.")
+        ?.status,
+    ).toBe("NOT_CHECKED");
+  });
   it("normalizes events and retains ambiguous assertions without inventing claims", async () => {
     const root = await fixture();
     const event = await normalizeEvent({

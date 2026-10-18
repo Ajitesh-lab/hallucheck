@@ -11,6 +11,29 @@ afterEach(async () => {
   );
 });
 it.each(["codex", "claude-code"] as const)(
+  "instructs the agent to review every ordinary %s task against the actual project",
+  async (host) => {
+    const root = await mkdtemp(path.join(tmpdir(), "hc-prompt-"));
+    roots.push(root);
+    const output = await handleHook(
+      host,
+      {
+        session_id: "ordinary",
+        cwd: root,
+        hook_event_name: "UserPromptSubmit",
+        prompt: "Please update the readme.",
+      },
+      root,
+    );
+    expect(output).not.toHaveProperty("decision");
+    const text = JSON.stringify(output);
+    expect(text).toContain("Before the final response");
+    expect(text).toContain(root);
+    expect(text).toContain("review-task");
+    expect(text).toContain("UNSUPPORTED");
+  },
+);
+it.each(["codex", "claude-code"] as const)(
   "runs %s warning -> user fix -> same-session edit -> automatic verification through real hook formats",
   async (host) => {
     const root = await mkdtemp(path.join(tmpdir(), "hc-hooks-"));

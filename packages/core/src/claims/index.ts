@@ -5,7 +5,7 @@ import {
 } from "../../../shared/src/index.js";
 export function extractClaims(event: AgentEvent): Claim[] {
   const inputs = event.claims.length
-    ? event.claims
+    ? [...event.claims]
     : event.text
       ? [
           {
@@ -16,6 +16,17 @@ export function extractClaims(event: AgentEvent): Claim[] {
           },
         ]
       : [];
+  if (
+    event.claims.length &&
+    event.eventType === "AGENT_STOP" &&
+    event.text?.trim()
+  )
+    inputs.push({
+      statement: event.text,
+      category: "COMPLETION",
+      relatedFiles: event.filePaths,
+      requiredEvidence: [],
+    });
   const unique = new Map<string, Claim>();
   for (const input of inputs) {
     const key = hash({

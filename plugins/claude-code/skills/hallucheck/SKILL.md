@@ -1,11 +1,29 @@
 ---
 name: hallucheck
-description: Handle HALLUCHECK findings inside the current coding conversation—inspect evidence, request an AI investigation, flag a warning, acknowledge risk, or change operating mode. Use for HALLUCHECK actions, not ordinary debugging without a finding.
+description: Handle HALLUCHECK task-review findings and add a brief uncertainty note to the final response. Inspect evidence, request an AI investigation, flag a warning, acknowledge risk, or change operating mode in the current conversation. Use for HALLUCHECK reviews and actions, not ordinary debugging without a finding.
 ---
 
 Keep the user in this conversation. Do not launch a new coding session, frontend, browser or terminal UI for these actions.
 
-Read `halluc_check_settings` for the current mode and negotiated capabilities. List outstanding findings with `halluc_check_list_open`, and show evidence with `halluc_check_action` action `evidence` (use `detailed=true` only when requested). Distinguish lifecycle state from independently established evidence status; accepted risk is never verified correctness.
+## Task review and key setup
+
+The skill requires the installed `halluc-check` CLI on PATH. For a task review, run `halluc-check review-task --root /absolute/active/project --json`, supplying JSON on stdin with a concise truthful `text` summary, optional evidence-bearing `claims`, and optional `filePaths`. Use exact file/export/module/test evidence requirements for material assertions; never use the plugin cache as the project. Inspect the returned findings before applying the final-note rules below. If connected MCP tools support workspace selection, `halluc_check_analyze` with `eventType: AGENT_STOP` and the active `repositoryRoot` is an alternative.
+
+For a direct TypeSafe key, tell the user to run `halluc-check auth login` themselves in their terminal. It hides key entry, asks before enabling external inference, and saves an owner-only local file outside Git. Never request the key in chat, accept it as a command argument, print it, or add it to repository files. `halluc-check auth status` reports saved settings without the key; `halluc-check auth logout` removes them. `halluc-check doctor --jev` is an explicit synthetic API request that may use provider credits. Setup itself sends no request. See the repository's `docs/SETUP.md` when available for installation and rotation.
+
+If this is a standalone skill without MCP or hooks, use the CLI review fallback. Do not pretend native tools, hook interception, or repair IDs are available. When MCP tools are connected, follow the native interaction workflow below and pass the active absolute `repositoryRoot` on each call.
+
+## Final-response note
+
+After the task review, append one short note at the very end of the final response when a specific, material claim remains unresolved. Name the affected part of the work and a concrete check the user can make. Cover relevant UNSUPPORTED or NOT_CHECKED claims and confirmed contradictions; a generic completion summary being NOT_CHECKED alone does not justify a warning about the whole task. Omit the note when no material uncertainty remains, and do not repeat a resolved or stale warning.
+
+For an unresolved claim with a current, real Jev prediction, use `round(100 * finding.prediction.incorrectRisk)` (or the equivalent `model.risk` from its evidence view), only if it is a finite number between 0 and 1, the prediction provider is `jev`, and the provider is available. Never invent a percentage, use a mock score, substitute `unsupported`, impact, action confidence or severity, average unrelated findings, or treat a model score as proof. These scores are uncalibrated model estimates, not measured probabilities that the work is hallucinated. Identify them that way in the note.
+
+Example shape with a real score: “HALLUCHECK note: [specific claim] may be a hallucination (model-estimated risk: [X]%; uncalibrated). Please double-check [specific evidence or check].” Without a usable score: “HALLUCHECK note: [specific claim] is unverified; please double-check [specific check].” For a contradiction, say “[specific claim] conflicts with [observed evidence]; please check [location]” instead of softening established evidence into a speculative percentage. Do not include literal placeholders in the user's answer.
+
+Keep the note to one or two sentences, with no extra heading or dashboard. Existing authorization and repair rules still apply. The note is not a claim that every other part of the answer has been verified.
+
+When MCP tools are connected, read `halluc_check_settings` for the current mode and negotiated capabilities. List outstanding findings with `halluc_check_list_open`, and show evidence with `halluc_check_action` action `evidence` (use `detailed=true` only when requested). Distinguish lifecycle state from independently established evidence status; accepted risk is never verified correctness.
 
 For a user choice, call `halluc_check_action` action `choose` or the requested action. If the client supports MCP form elicitation, the tool presents the native choices and executes the actual selection. If the response is AWAITING_USER_ACTION, ask the user to send the exact supported native chat message returned by the tool, such as `hallucheck fix FULL_ID` or `hallucheck accept-risk FULL_ID reason`. Do not simulate user input, forge a UserPromptSubmit hook, set a confirmation boolean, or run a hook subprocess to approve your own action. Invoke the packaged Claude skill as `/hallucheck:hallucheck`. The plain chat messages above use the UserPromptSubmit hook and work without a slash-command alias.
 

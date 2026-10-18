@@ -1,9 +1,11 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, rm, realpath } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { ListRootsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { pathToFileURL } from "node:url";
 import { Engine } from "../../packages/core/src/index.js";
 import { serve, rpc, JobQueue } from "../../apps/daemon/src/index.js";
 import { createMcp } from "../../apps/mcp-server/src/index.js";
@@ -18,6 +20,109 @@ async function fixture() {
   return root;
 }
 describe("local daemon and MCP", () => {
+  async function connect(root?: string, roots?: () => string[]) {
+    const { server, close } = await createMcp(root);
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+    const client = new Client(
+      { name: "workspace-test", version: "1" },
+      roots ? { capabilities: { roots: { listChanged: true } } } : undefined,
+    );
+    if (roots)
+      client.setRequestHandler(ListRootsRequestSchema, async () => ({
+        roots: roots().map((r) => ({ uri: pathToFileURL(r).href })),
+      }));
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+    cleanups.push(async () => {
+      await client.close();
+      await server.close();
+      close();
+    });
+    return client;
+  }
+  it("selects explicit workspaces per request and isolates their findings and settings", async () => {
+    const a = await fixture(),
+      b = await fixture();
+    await writeFile(path.join(a, "api.ts"), "export const actual = 1;");
+    await writeFile(path.join(b, "api.ts"), "export const other = 1;");
+    const client = await connect();
+    for (const [repositoryRoot, status] of [
+      [a, "VERIFIED"],
+      [b, "CONTRADICTED"],
+    ]) {
+      const response = await client.callTool({
+        name: "halluc_check_verify",
+        arguments: {
+          repositoryRoot,
+          claims: [
+            {
+              statement: "api exports actual",
+              requiredEvidence: [
+                { kind: "export", path: "api.ts", name: "actual" },
+              ],
+            },
+          ],
+        },
+      });
+      expect(response.isError).not.toBe(true);
+      const result = (response.structuredContent as any).result;
+      expect(result.findings[0].repositoryRoot).toBe(
+        await realpath(repositoryRoot!),
+      );
+      expect(result.findings[0].status).toBe(status);
+    }
+    const listed = await client.callTool({
+      name: "halluc_check_list_open",
+      arguments: { repositoryRoot: a },
+    });
+    expect(JSON.stringify(listed)).not.toContain(b);
+    const settings = await client.callTool({
+      name: "halluc_check_settings",
+      arguments: { repositoryRoot: b },
+    });
+    expect(JSON.stringify(settings)).toContain("ASK_BEFORE_FIXING");
+  });
+  it("uses negotiated client roots, follows root changes, and rejects other workspaces", async () => {
+    const a = await fixture(),
+      b = await fixture();
+    let active = [a];
+    const client = await connect(undefined, () => active);
+    const status = () =>
+      client.callTool({ name: "halluc_check_get_status", arguments: {} });
+    expect(JSON.stringify(await status())).toContain(a);
+    expect(
+      (
+        await client.callTool({
+          name: "halluc_check_get_status",
+          arguments: { repositoryRoot: b },
+        })
+      ).isError,
+    ).toBe(true);
+    active = [b];
+    expect(JSON.stringify(await status())).toContain(b);
+    active = [a, b];
+    expect((await status()).isError).toBe(true);
+    expect(
+      (
+        await client.callTool({
+          name: "halluc_check_get_status",
+          arguments: { repositoryRoot: a },
+        })
+      ).isError,
+    ).not.toBe(true);
+  });
+  it("keeps explicit --root servers pinned even when a caller supplies another project", async () => {
+    const a = await fixture(),
+      b = await fixture();
+    const client = await connect(a);
+    const response = await client.callTool({
+      name: "halluc_check_analyze",
+      arguments: { event: { eventType: "MANUAL_SCAN", repositoryRoot: b } },
+    });
+    expect(response.isError).toBe(true);
+    expect(JSON.stringify(response)).toContain("identity mismatch");
+  });
   it("serves real socket ingestion, bounded jobs, reports, and repository-root enforcement", async () => {
     const root = await fixture();
     const engine = await Engine.open(root);

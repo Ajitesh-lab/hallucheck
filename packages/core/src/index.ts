@@ -26,6 +26,7 @@ import {
   type JevRequest,
 } from "../../jev-provider/src/index.js";
 import { loadConfig, privateDirectory, sanitize } from "./security/index.js";
+import { loadJevEnvironment } from "../../jev-provider/src/environment.js";
 import { normalizeEvent } from "./events/index.js";
 import { extractClaims } from "./claims/index.js";
 import {
@@ -67,6 +68,7 @@ export class Engine {
     } = {},
   ): Promise<Engine> {
     root = await realpath(root);
+    await loadJevEnvironment();
     const config = options.config ?? (await loadConfig(root));
     const dir = path.join(root, ".hallucheck");
     if (!options.memory) await privateDirectory(dir);
@@ -74,7 +76,10 @@ export class Engine {
       options.provider ??
       (config.provider === "jev"
         ? new JevClient({
-            apiKey: process.env.JEV_API_KEY,
+            apiKey:
+              process.env.JEV_API_KEY ??
+              process.env.TYPESAFE_API_KEY ??
+              process.env.AI_GATEWAY_API_KEY,
             model: config.model,
             baseUrl: process.env.JEV_BASE_URL,
             timeoutMs: process.env.JEV_TIMEOUT_MS
@@ -101,9 +106,8 @@ export class Engine {
     )
       return "disabled";
     if (
-      !process.env.JEV_API_KEY &&
       this.provider instanceof JevClient &&
-      !this.provider.options.apiKey
+      !this.provider.options.apiKey?.trim()
     )
       return "unavailable:NO_API_KEY";
     return this.provider ? "available" : "unavailable";
@@ -160,6 +164,14 @@ export class Engine {
     ];
     const context = await this.repo.context(requested);
     metrics.context_retrieval_ms = performance.now() - t;
+    if (event.eventType === "AGENT_STOP")
+      this.store.audit("task-review", {
+        sessionId: event.sessionId,
+        agentType: event.agentType,
+        snapshot: context.snapshot,
+        claimCount: event.claims.length,
+        hasCompletionText: !!event.text?.trim(),
+      });
     if (
       event.eventType === "POST_TOOL_EXECUTION" ||
       event.eventType === "TEST_EXECUTED"
@@ -181,9 +193,11 @@ export class Engine {
       claims = this.scanClaims(event, context);
     if (event.eventType === "AGENT_STOP") {
       context.selectedFiles = (
-        context.changedFiles.length
-          ? context.changedFiles
-          : context.selectedFiles
+        event.filePaths.length
+          ? event.filePaths
+          : context.changedFiles.length
+            ? context.changedFiles
+            : await this.repo.files()
       ).filter((file) => /\.[cm]?[jt]sx?$/.test(file));
       claims.push(...this.scanClaims(event, context));
     }
@@ -334,7 +348,7 @@ export class Engine {
         );
         this.repo.invalidateIndex();
         const after = await this.repo.context(requested);
-        record.revision=context.revision;
+        record.revision = context.revision;
         if (after.snapshot !== context.snapshot) record.complete = false;
         this.store.execution(this.root, record);
         this.store.audit("verification-executed", {

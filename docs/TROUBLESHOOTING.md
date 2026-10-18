@@ -1,7 +1,8 @@
 # Troubleshooting
 
 - **Jev disabled:** defaults are private. Enable `privacy.allowExternalInference` or `HALLUCHECK_EXTERNAL_INFERENCE=1`, then restart the daemon. A key alone does not enable transmission.
-- **NO_API_KEY / AUTH:** set `JEV_API_KEY` in the process starting the daemon. Never paste credentials into repository config or hook JSON. AUTH is not retried.
+- **NO_API_KEY / AUTH:** set `JEV_API_KEY` / `TYPESAFE_API_KEY` for TypeSafe or `AI_GATEWAY_API_KEY` for Vercel. A Vercel `vck_` key must use Gateway rather than a third-party Jev service. Run `halluc-check doctor --jev` for a synthetic live diagnostic. GUI hosts can use the private provider environment file described in configuration. Never paste credentials into repository config or hook JSON. AUTH is not retried.
+- **ACCESS_DENIED / BILLING:** credentials reached the provider, but model access or credits are required. Vercel can refuse Jev to free-tier users with HTTP 403; add paid Gateway credits or configure a direct TypeSafe key with access. This is separate from HTTP 401 invalid credentials and cannot be repaired by retries.
 - **TIMEOUT / RATE_LIMIT / NETWORK:** findings retain objective evidence and explicitly disclose provider unavailability. Rate-limit Retry-After is bounded by the request deadline. No model clean bill of health is produced.
 - **CONTEXT_LIMIT:** outbound statements/evidence plus fixed question instructions exceed the configured cap. Use fewer/smaller explicit claims or increase the bounded cap. Files are never uploaded wholesale.
 - **Missing dependency / type information:** install the target repository's dependencies and check tsconfig. A module-resolution contradiction is scoped to the current local environment, not proof a package does not exist on a registry.

@@ -178,10 +178,8 @@ export class RepositoryAnalyzer {
       }
     }
     const revision = (await git(root, ["rev-parse", "HEAD"])).trim();
-    const changedFiles = (await git(root, ["diff", "--name-only", "HEAD"]))
-      .trim()
-      .split("\n")
-      .filter(Boolean);
+    // Include new files as well as tracked edits in automatic completion reviews.
+    const changedFiles = await this.files(true);
     const selectedFiles = selected.length
       ? selected
       : files.filter((f) => /\.[cm]?[jt]sx?$/.test(f)).slice(0, 64);

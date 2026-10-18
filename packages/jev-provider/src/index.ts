@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { randomUUID } from "node:crypto";
 import {
   Lru,
   Semaphore,
@@ -92,7 +93,14 @@ export function validateResponse(
   request: JevRequest,
 ): JevResponse {
   const result = ResponseSchema.parse(input);
-  if (result.model !== request.model)
+  const aliases: Record<string, RegExp> = {
+    "jev-latest": /^jev-\d+\.\d+\.\d+$/,
+    "jev-1.13": /^jev-1\.13\.\d+$/,
+  };
+  if (
+    result.model !== request.model &&
+    !aliases[request.model]?.test(result.model)
+  )
     throw new Error("Provider model mismatch");
   if (
     Object.keys(result.answers).length !== Object.keys(request.questions).length
@@ -124,6 +132,31 @@ export function validateResponse(
     }
   }
   return result;
+}
+export function jevEndpoint(apiKey?: string, baseUrl?: string): URL {
+  const base = new URL(
+    baseUrl ??
+      (apiKey?.trim().startsWith("vck_")
+        ? "https://ai-gateway.vercel.sh/typesafe"
+        : "https://api.typesafe.ai"),
+  );
+  if (
+    (base.protocol !== "https:" &&
+      !["localhost", "127.0.0.1", "[::1]"].includes(base.hostname)) ||
+    base.username ||
+    base.password ||
+    base.search ||
+    base.hash
+  )
+    throw new ProviderUnavailable(
+      "UNSAFE_URL",
+      "Jev requires HTTPS without embedded credentials, queries or fragments except loopback",
+    );
+  const prefix = base.pathname.replace(/\/+$/, "");
+  base.pathname = prefix.endsWith("/systemone")
+    ? base.pathname
+    : `${prefix}${prefix.endsWith("/v1") ? "" : "/v1"}/systemone`;
+  return base;
 }
 export class JevClient implements DecisionProvider {
   readonly mode = "jev" as const;
@@ -172,13 +205,21 @@ export class JevClient implements DecisionProvider {
         "DISABLED",
         "External Jev inference is disabled",
       );
-    if (!this.options.apiKey)
+    if (!this.options.apiKey?.trim())
       throw new ProviderUnavailable(
         "NO_API_KEY",
-        "JEV_API_KEY is not configured",
+        "Set JEV_API_KEY, TYPESAFE_API_KEY or AI_GATEWAY_API_KEY",
       );
+    const gateway =
+      jevEndpoint(this.options.apiKey, this.options.baseUrl).hostname ===
+      "ai-gateway.vercel.sh";
     const request = RequestSchema.parse({
       ...sanitize(input),
+      model:
+        gateway &&
+        ["jev-latest", "jev-1.13", "jev-1.13.0"].includes(input.model)
+          ? "typesafe-ai/jev"
+          : input.model,
       state: sanitizeExternal(input.state),
     });
     const body = JSON.stringify(request);
@@ -210,21 +251,8 @@ export class JevClient implements DecisionProvider {
     body: string,
     signal?: AbortSignal,
   ): Promise<JevResponse> {
-    const base = new URL(this.options.baseUrl ?? "https://jev-ai.org");
-    if (
-      base.protocol !== "https:" &&
-      !["localhost", "127.0.0.1", "[::1]"].includes(base.hostname)
-    )
-      throw new ProviderUnavailable(
-        "UNSAFE_URL",
-        "Jev requires HTTPS except loopback",
-      );
-    if (base.username || base.password)
-      throw new ProviderUnavailable(
-        "UNSAFE_URL",
-        "Embedded URL credentials are forbidden",
-      );
-    const url = new URL("/api/v1/systemone/", base);
+    const started = performance.now();
+    const url = jevEndpoint(this.options.apiKey, this.options.baseUrl);
     const timeout = this.options.timeoutMs ?? 3000;
     const overall = AbortSignal.any([
       AbortSignal.timeout(timeout),
@@ -239,14 +267,28 @@ export class JevClient implements DecisionProvider {
           method: "POST",
           redirect: "error",
           headers: {
-            Authorization: `Bearer ${this.options.apiKey}`,
+            Authorization: `Bearer ${this.options.apiKey!.trim()}`,
             "Content-Type": "application/json",
           },
           body,
           signal: overall,
         });
-        if (response.status === 401 || response.status === 403)
-          throw new ProviderUnavailable("AUTH", "Jev authentication failed");
+        if (response.status === 401) {
+          await response.body?.cancel();
+          throw new ProviderUnavailable(
+            "AUTH",
+            "Jev authentication failed; check the credential belongs to the selected endpoint",
+          );
+        }
+        if (response.status === 403 || response.status === 402) {
+          await response.body?.cancel();
+          throw new ProviderUnavailable(
+            response.status === 403 ? "ACCESS_DENIED" : "BILLING",
+            response.status === 403
+              ? "Provider denied model access; check model permissions and paid-credit requirements"
+              : "Provider requires credits for this request",
+          );
+        }
         if (response.status === 429 || response.status >= 500) {
           await response.body?.cancel();
           if (attempt === (this.options.retries ?? 2))
@@ -291,7 +333,31 @@ export class JevClient implements DecisionProvider {
         }
         data += decoder.decode();
         try {
-          return validateResponse(JSON.parse(data), request);
+          const raw = JSON.parse(data);
+          // TypeSafe's native contract doesn't require gateway-only metadata.
+          // Missing request id and timing are local observations, not model facts.
+          const native = z
+            .object({
+              model: z.string().min(1),
+              answers: z.record(z.string(), AnswerSchema),
+            })
+            .parse(raw);
+          return validateResponse(
+            {
+              ...raw,
+              id:
+                raw.id ??
+                response.headers.get("x-request-id") ??
+                `local-${randomUUID()}`,
+              model_version:
+                raw.model_version ??
+                (/^jev-\d+\.\d+\.\d+$/.test(native.model)
+                  ? native.model
+                  : "not-reported"),
+              latency_ms: raw.latency_ms ?? performance.now() - started,
+            },
+            request,
+          );
         } catch {
           throw new ProviderUnavailable(
             "MALFORMED",

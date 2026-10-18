@@ -5,6 +5,7 @@ import {
   questions,
   validateResponse,
   RequestSchema,
+  jevEndpoint,
   type JevRequest,
 } from "../packages/jev-provider/src/index.js";
 import { mockResponse } from "../packages/jev-provider/src/testing.js";
@@ -25,6 +26,70 @@ const client = (fetcher: typeof fetch, extra: Record<string, unknown> = {}) =>
     ...extra,
   });
 describe("Jev typed client", () => {
+  it("routes Vercel credentials to the gateway and preserves API path prefixes", async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockImplementation(
+        async (_url, init) =>
+          new Response(
+            JSON.stringify(mockResponse(JSON.parse(init!.body as string))),
+          ),
+      );
+    const response = await client(fetcher, {
+      apiKey: "  vck_test_gateway_credential  ",
+    }).decide(request);
+    expect(String(fetcher.mock.calls[0]![0])).toBe(
+      "https://ai-gateway.vercel.sh/typesafe/v1/systemone",
+    );
+    expect(fetcher.mock.calls[0]![1]!.headers).toMatchObject({
+      Authorization: "Bearer vck_test_gateway_credential",
+    });
+    expect(response.model).toBe("typesafe-ai/jev");
+    expect(jevEndpoint("direct-test-key").href).toBe(
+      "https://api.typesafe.ai/v1/systemone",
+    );
+    expect(jevEndpoint("x", "https://proxy.example/typesafe/v1/").href).toBe(
+      "https://proxy.example/typesafe/v1/systemone",
+    );
+  });
+  it("accepts the native TypeSafe response without inventing required server metadata", async () => {
+    const native = mockResponse(request);
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            model: "jev-1.13.0",
+            answers: native.answers,
+            usage: { input_tokens: 20 },
+          }),
+          { headers: { "x-request-id": "server-request-id" } },
+        ),
+      );
+    const response = await client(fetcher).decide(request);
+    expect(response.model).toBe("jev-1.13.0");
+    expect(response.model_version).toBe("jev-1.13.0");
+    expect(response.id).toBe("server-request-id");
+    expect(response.latency_ms).toBeGreaterThanOrEqual(0);
+    expect(() =>
+      validateResponse({ ...native, model: "another-model" }, request),
+    ).toThrow("Provider model mismatch");
+  });
+  it.each([
+    [403, "ACCESS_DENIED"],
+    [402, "BILLING"],
+  ])(
+    "distinguishes HTTP %s from invalid credentials without retrying",
+    async (status, code) => {
+      const fetcher = vi
+        .fn()
+        .mockResolvedValue(new Response("", { status: Number(status) }));
+      await expect(client(fetcher).decide(request)).rejects.toMatchObject({
+        code,
+      });
+      expect(fetcher).toHaveBeenCalledOnce();
+    },
+  );
   it("validates all answer types and preserves decimal scores, distributions and versions", async () => {
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => ok());
     const response = await client(fetcher).decide(request);

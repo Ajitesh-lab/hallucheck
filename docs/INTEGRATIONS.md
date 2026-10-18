@@ -65,7 +65,9 @@ For another target repository, copy `plugins/codex` into that repository using `
 
 Codex PreToolUse supports deny; ask is explicitly unsupported in the current documented runtime. HALLUCHECK maps mandatory authorization to a denial with human guidance, and never claims to create a Codex approval prompt. Normal host approval remains the authority. The HALLUCHECK review queue records human assessment; it does not bypass a mandatory tool guard. Ambiguous shell semantics remain the host sandbox/approval system's responsibility.
 
-Supported hook subset: SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop. Codex apply_patch has no structured file_paths in its hook contract, so its post-hook scans the bounded source selection rather than inventing a patch parser. Host versions/surfaces may expose different tool coverage. MCP tools cover explicit checks for unsupported event paths.
+Supported hook subset: SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop. Ordinary UserPromptSubmit events instruct the agent to review the task before replying, with the payload's actual project path. Stop reviews changed source, including untracked files; without changes it reviews a bounded source selection. Codex apply_patch has no structured file_paths in its hook contract, so its post-hook scans the bounded source selection rather than inventing a patch parser. Host versions/surfaces may expose different tool coverage. MCP tools cover explicit checks for unsupported event paths.
+
+For an instruction-based fallback when hooks are unavailable or await trust, put an instruction in your user-level `~/.codex/AGENTS.md` to run `halluc-check review-task --root <active absolute workspace> --json` before final responses, passing JSON on stdin with completion `text` and optional evidence-bearing `claims` and `filePaths`. This uses the shared engine directly and works with an older, already-connected MCP process. It is agent-followed guidance, not tool interception or a guarantee that every statement is verified. For long tasks, review at major milestones too. Surface actual contradictions and material uncertainty; keep routine checks quiet.
 
 Uninstall with `codex plugin remove hallucheck@hallucheck-local`. Remove the local marketplace with `codex plugin marketplace remove hallucheck-local` when no longer used. For copied files, also run the marker-protected uninstall script on that exact destination.
 
@@ -86,12 +88,13 @@ Both plugin packages declare the local MCP server. Standalone configuration:
 }
 ```
 
-Five base tools are exposed: `halluc_check_analyze`, `halluc_check_verify`, `halluc_check_get_findings`, `halluc_check_get_report`, `halluc_check_get_status`. MCP alone does not intercept agent activity. The server is bound to one repository; event roots outside that repository are rejected. Four additional native interaction tools implement evidence choices, same-session repair, persistent settings and open findings. User risk acknowledgment is distinct from mandatory security approval; see [native interaction](NATIVE_INTERACTION.md).
+Five base tools are exposed: `halluc_check_analyze`, `halluc_check_verify`, `halluc_check_get_findings`, `halluc_check_get_report`, `halluc_check_get_status`. MCP alone does not intercept agent activity. A server explicitly launched with `--root` stays pinned to that repository and rejects other roots. Plugin launches without `--root` resolve the workspace per request: pass an absolute `repositoryRoot` (inside `event` for analyze), or let a client advertising exactly one local MCP root select it. Multiple advertised roots require explicit selection, and requests outside advertised roots are rejected. Without client roots, an explicit path is supported; a plugin-cache launch directory is never silently used as the project. Engines, findings and interaction settings remain separate for each project. Reconnect an existing MCP process after updating the CLI to load the new schemas and routing. Four additional native interaction tools implement evidence choices, same-session repair, persistent settings and open findings. User risk acknowledgment is distinct from mandatory security approval; see [native interaction](NATIVE_INTERACTION.md).
 
 Example `halluc_check_verify` arguments:
 
 ```json
 {
+  "repositoryRoot": "/absolute/path/to/repository",
   "claims": [
     {
       "statement": "src/auth.ts exports createSession.",

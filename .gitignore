@@ -11,3 +11,5 @@ coverage/
 !.env.example
 *.pem
 *.key
+jev.env
+.jev-*.tmp

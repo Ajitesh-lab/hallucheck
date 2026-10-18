@@ -4,6 +4,10 @@ Evidence-grounded verification for AI coding agents. A local TypeScript/JavaScri
 
 The system separates **VERIFIED**, **CONTRADICTED**, **UNSUPPORTED**, and **NOT_CHECKED**. Model predictions never verify facts. Missing test evidence is uncertainty, not a failed test. Source stays local by default; external inference and command execution require separate explicit opt-ins.
 
+**Start here:** [Install the skill and securely configure your TypeSafe key](docs/SETUP.md). The [Codex skill](plugins/codex/skills/hallucheck/SKILL.md) and [Claude Code skill](plugins/claude-code/skills/hallucheck/SKILL.md) are included in this public repository.
+
+When a material claim remains uncertain, the skill adds a short note at the end of its answer naming what to double-check. A percentage is shown only when a current real Jev risk estimate is available, and is labeled an uncalibrated model estimate. Without a score it says “unverified.” No score is invented, and successful work does not get a routine warning.
+
 ## Native findings and Fix with AI
 
 Warnings and repair actions stay inside Claude Code, Codex, or an MCP client. After installing the plugin, send these ordinary messages in your current coding conversation:
@@ -29,13 +33,16 @@ Requires Node >=22.13, pnpm 10, Git and ripgrep on macOS/Linux. Development vali
 git clone https://github.com/Ajitesh-lab/hallucheck.git
 cd hallucheck
 pnpm install --frozen-lockfile
-pnpm check
+pnpm build
 npm link
+node bin/install-skill.mjs
 halluc-check doctor
 halluc-check scan --root /absolute/path/to/repository --file src/auth.ts
 halluc-check scan --root /absolute/path/to/repository --changed
 halluc-check report --root /absolute/path/to/repository --format json
 ```
+
+The installer adds the standalone skill to `~/.codex/skills/hallucheck` (or `$CODEX_HOME/skills/hallucheck`) and refuses to overwrite an existing skill. Start a new local Codex chat and ask `$hallucheck` to review your work. The skill requires the installed CLI; it is not a standalone ChatGPT app or a guarantee that every sentence is checked. For automatic reviews on each task, use the optional instruction in [setup](docs/SETUP.md#review-every-task). The full plugin with lifecycle hooks is available under [Agent installation](#agent-installation).
 
 For a reproducible example that deliberately includes absent symbols and legitimate unusual APIs:
 
@@ -46,17 +53,49 @@ pnpm eval
 
 Initialize configuration in the repository being checked with `halluc-check init`. Start/reuse its persistent warm daemon with `halluc-check daemon start`. `halluc-check daemon stop` stops it. Hooks start the daemon at SessionStart automatically; manual CLI/MCP calls use an existing daemon or the shared engine directly.
 
-## Enable Jev deliberately
+Normal prompts instruct the agent to review every task before its final response. Stop hooks independently review a bounded source selection, including untracked files. A review can also run explicitly:
 
 ```sh
-export JEV_API_KEY='your-key-from-Jev'
-export HALLUCHECK_EXTERNAL_INFERENCE=1
+halluc-check review-task --root /absolute/path/to/project --json <<'JSON'
+{"text":"Added the session API.","claims":[{"statement":"src/auth.ts exports createSession.","requiredEvidence":[{"kind":"export","path":"src/auth.ts","name":"createSession"}]}]}
+JSON
+```
+
+`review-task` accepts JSON on stdin (`text`, optional `claims` and `filePaths`), reviews completion claims and source, and persists its evidence. General prose without independent evidence remains NOT_CHECKED. Checks do not prove every factual statement or full task completion.
+
+## Enable Jev deliberately
+
+Get a direct Jev API key from the official [TypeSafe console](https://console.typesafe.ai), as described in [TypeSafe's quick start](https://docs.typesafe.ai/introduction/quickstart). Then run this yourself in a terminal:
+
+```sh
+halluc-check auth login
+halluc-check auth status
+```
+
+The key prompt is hidden. Setup asks separately whether to enable sending redacted, bounded claim/evidence summaries to TypeSafe; the default is **No**. It makes no API request. The key is stored in `~/.config/hallucheck/jev.env`, outside the repo, with file permissions `600` and directory permissions `700`. This is an owner-only plaintext file, not encrypted storage. Setup refuses symlink targets, shared directories/files, and credential files inside a Git worktree. Do not paste keys into chat, command arguments, screenshots, issues, or project files.
+
+To test the saved key, send one synthetic request (provider charges may apply):
+
+```sh
+halluc-check doctor --jev
+```
+
+Restart an already-running project daemon after changing keys or privacy settings, and reconnect an existing agent/MCP session:
+
+```sh
+halluc-check daemon stop # only if already running
 halluc-check daemon start
 ```
 
-Restart an existing daemon to change environment or configuration. The default model is `jev-1.13`. Requests contain only redacted, bounded claims/evidence summaries; no repository upload occurs. Jev `noul`, `choice`, and `score` responses are validated separately and preserve their native distributions and model build. Outages are explicit. No key is required for objective local evidence, unit tests, evaluations, or mocks.
+Use `halluc-check auth login` again to rotate the saved key. Use `halluc-check auth logout` to remove saved provider settings; this does not revoke the key at TypeSafe or clear exported shell variables. `auth status` never displays the key and does not test live access. Shell credentials override saved credentials; see [configuration](docs/CONFIGURATION.md) for environment-based setup.
 
-Run a real opt-in contract check with `pnpm test:live`. This is separate from the offline test suite and requires a valid key. The client follows the [official decision contract](https://jev-ai.org/docs/decisions/) and [typed question contract](https://jev-ai.org/docs/question-types/).
+The default direct model is `jev-1.13.0`. Requests contain redacted, bounded claims/evidence summaries, which may include small source-derived excerpts; there is no whole-repository upload. Jev `noul`, `choice`, and `score` responses are validated separately and preserve their native distributions and any reported model version. Outages are explicit. No key is required for objective local evidence, unit tests, evaluations, or mocks. Percentage notes require actual Jev scores.
+
+For a Vercel AI Gateway key (`vck_…`), set `AI_GATEWAY_API_KEY` instead. The client selects Vercel's TypeSafe-compatible endpoint and `typesafe-ai/jev`; direct TypeSafe keys use `JEV_API_KEY` or `TYPESAFE_API_KEY` and `https://api.typesafe.ai/v1/systemone`. Credentials belong to their issuing provider and are not interchangeable. Gateway model access may require paid credits.
+
+Run `halluc-check doctor --jev` to send one tiny synthetic decision and distinguish invalid credentials (`AUTH`), model access restrictions (`ACCESS_DENIED`), billing (`BILLING`), and transport failures. This diagnostic can use provider credits when successful and never sends repository content. GUI hosts can load provider settings from an owner-only `~/.config/hallucheck/jev.env`; see [configuration](docs/CONFIGURATION.md).
+
+Run a real opt-in contract check with `pnpm test:live`. This is separate from the offline test suite and requires a valid key with model access. The client follows [TypeSafe's API contract](https://docs.typesafe.ai/api) and [Vercel's TypeSafe-compatible API](https://vercel.com/docs/ai-gateway/sdks-and-apis/typesafe).
 
 ## Agent installation
 
