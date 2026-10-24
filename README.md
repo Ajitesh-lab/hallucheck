@@ -1,4 +1,14 @@
-# HALLUCHECK
+# HalluCheck
+
+Evidence-grounded verification for AI coding agents.
+
+- **Check claims against code.** Inspect local TypeScript and JavaScript evidence.
+- **Understand the result.** Distinguish verified, contradicted, unsupported, and unchecked claims.
+- **Investigate repairs in context.** Work with findings inside Claude Code, Codex, or an MCP client.
+
+[Get started](docs/SETUP.md) · [Architecture](docs/ARCHITECTURE.md) · [Known limitations](docs/LIMITATIONS.md)
+
+## How it works
 
 Evidence-grounded verification for AI coding agents. A local TypeScript/JavaScript verifier, optional Jev decision provider, persistent Unix-socket daemon, Claude Code and Codex hook plugins, and nine explicit MCP tools share one engine.
 
